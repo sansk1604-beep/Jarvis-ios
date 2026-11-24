@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,87 +7,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#050b18">
 <title>J.A.R.V.I.S.</title>
-
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;background:#050b18;color:#eaf6ff;
- font-family:Arial,sans-serif;min-height:100vh
-}
+body{margin:0;background:#050b18;color:#eaf6ff;font-family:Arial,sans-serif;min-height:100vh}
 header{text-align:center;padding:28px 15px 15px}
-h1{
- font-size:30px;letter-spacing:7px;
- color:#55caff;margin:12px
-}
+h1{font-size:30px;letter-spacing:7px;color:#55caff;margin:12px}
 .sub{color:#779bb5;font-size:12px;letter-spacing:3px}
-.core{
- width:125px;height:125px;border:2px solid #43caff;
- border-radius:50%;margin:25px auto;
- display:grid;place-items:center;
- box-shadow:0 0 25px #087dbb,inset 0 0 25px #087dbb
-}
+.core{width:125px;height:125px;border:2px solid #43caff;border-radius:50%;margin:25px auto;display:grid;place-items:center;box-shadow:0 0 25px #087dbb,inset 0 0 25px #087dbb}
 .core span{font-size:38px;color:#71dfff}
-.status{
- text-align:center;color:#55caff;
- font-size:13px;margin-bottom:20px
-}
+.status{text-align:center;color:#55caff;font-size:13px;margin-bottom:20px}
 main{max-width:600px;margin:auto;padding:12px}
-#chat{
- height:40vh;min-height:230px;overflow:auto;
- border:1px solid #17405d;border-radius:14px;
- padding:14px;background:#081426
-}
-.msg{
- padding:12px;margin:9px 0;border-radius:12px;
- line-height:1.5;white-space:pre-wrap
-}
+#chat{height:40vh;min-height:230px;overflow:auto;border:1px solid #17405d;border-radius:14px;padding:14px;background:#081426}
+.msg{padding:12px;margin:9px 0;border-radius:12px;line-height:1.5;white-space:pre-wrap}
 .jarvis{background:#102b42;color:#bdeaff}
 .user{background:#153d56;color:white;text-align:right}
 .controls{display:flex;gap:9px;margin-top:12px}
-input{
- min-width:0;flex:1;background:#0c1c30;
- border:1px solid #28516e;color:white;
- padding:14px;border-radius:10px;font-size:16px
-}
-button{
- background:#087eae;color:white;border:0;
- border-radius:10px;padding:13px 16px;font-size:15px
-}
+input{min-width:0;flex:1;background:#0c1c30;border:1px solid #28516e;color:white;padding:14px;border-radius:10px;font-size:16px}
+button{background:#087eae;color:white;border:0;border-radius:10px;padding:13px 16px;font-size:15px}
 #mic{width:100%;margin-top:12px;background:#07547b}
 .small{color:#779bb5;text-align:center;font-size:12px;margin:18px}
 </style>
 </head>
-
 <body>
 <header>
- <div class="sub">PERSONAL AI ASSISTANT</div>
- <h1>J.A.R.V.I.S.</h1>
- <div class="sub">JUST A RATHER VERY INTELLIGENT SYSTEM</div>
- <div class="core"><span>J</span></div>
+<div class="sub">PERSONAL AI ASSISTANT</div>
+<h1>J.A.R.V.I.S.</h1>
+<div class="sub">JUST A RATHER VERY INTELLIGENT SYSTEM</div>
+<div class="core"><span>J</span></div>
 </header>
 
 <div class="status" id="status">SYSTEM ONLINE · READY</div>
 
 <main>
- <div id="chat">
-  <div class="msg jarvis">
-   Good evening, boss. JARVIS is ready. How may I assist you?
-  </div>
- </div>
+<div id="chat">
+<div class="msg jarvis">Good evening, boss. JARVIS is ready. How may I assist you?</div>
+</div>
 
- <div class="controls">
-  <input id="message" placeholder="Speak or type, boss..." autocomplete="off">
-  <button onclick="send()">SEND</button>
- </div>
+<div class="controls">
+<input id="message" placeholder="Speak or type, boss..." autocomplete="off">
+<button onclick="send()">SEND</button>
+</div>
 
- <button id="mic" onclick="listen()">🎙 TALK TO JARVIS</button>
- <div class="small">VOICE RESPONSES ENABLED · PERSONAL ASSISTANT</div>
+<button id="mic" onclick="toggleWakeMode()">🎙 START JARVIS</button>
+<div class="small">SAY "HEY JARVIS" TO WAKE YOUR ASSISTANT</div>
 </main>
 
 <script>
 const chat=document.getElementById('chat');
 const statusText=document.getElementById('status');
 const input=document.getElementById('message');
+const micButton=document.getElementById('mic');
+
+let active=false;
+let busy=false;
+let currentMode='wake';
+let recognition=null;
+let restartTimer=null;
 
 function add(text,who){
  const div=document.createElement('div');
@@ -96,7 +72,6 @@ function add(text,who){
  chat.scrollTop=chat.scrollHeight;
 }
 
-// Load available voices
 let availableVoices=[];
 
 function loadVoices(){
@@ -110,14 +85,18 @@ if('speechSynthesis' in window){
  speechSynthesis.onvoiceschanged=loadVoices;
 }
 
-// JARVIS voice
-function speak(text){
- if(!('speechSynthesis' in window))return;
+function speak(text,callback){
+ if(!('speechSynthesis' in window)){
+  if(callback)callback();
+  return;
+ }
 
  speechSynthesis.cancel();
 
+ const isHindi=/[\u0900-\u097F]/.test(text);
  const u=new SpeechSynthesisUtterance(text);
- u.lang='en-GB';
+
+ u.lang=isHindi?'hi-IN':'en-IN';
  u.rate=0.92;
  u.pitch=0.82;
  u.volume=1;
@@ -125,28 +104,145 @@ function speak(text){
  loadVoices();
 
  const preferred=availableVoices.find(v=>
-  /daniel|george|arthur/i.test(v.name) &&
-  v.lang.toLowerCase().startsWith('en')
+  isHindi
+   ? v.lang.toLowerCase().startsWith('hi')
+   : /daniel|george|arthur/i.test(v.name)&&
+     v.lang.toLowerCase().startsWith('en')
  );
 
- const british=availableVoices.find(v=>
-  v.lang.toLowerCase()==='en-gb'
+ const matching=availableVoices.find(v=>
+  v.lang.toLowerCase().startsWith(isHindi?'hi':'en-in')
  );
 
- if(preferred || british){
-  u.voice=preferred || british;
- }
+ if(preferred||matching)u.voice=preferred||matching;
+
+ u.onend=()=>{if(callback)callback();};
+ u.onerror=()=>{if(callback)callback();};
 
  speechSynthesis.speak(u);
 }
 
-// Send message to Gemini
+function toggleWakeMode(){
+ if(active){
+  stopWakeMode();
+  return;
+ }
+
+ const SpeechRecognition=
+  window.SpeechRecognition||window.webkitSpeechRecognition;
+
+ if(!SpeechRecognition){
+  add("Boss, speech recognition is not supported here. Please use Safari.",'jarvis');
+  speak("Boss, speech recognition is not supported here.");
+  return;
+ }
+
+ active=true;
+ busy=false;
+ micButton.textContent='⏹ STOP LISTENING';
+ statusText.textContent='JARVIS IS READY FOR YOUR WAKE WORD';
+
+ startRecognition('wake');
+}
+
+function stopWakeMode(){
+ active=false;
+ busy=false;
+ clearTimeout(restartTimer);
+
+ if(recognition){
+  try{recognition.abort();}catch(e){}
+  recognition=null;
+ }
+
+ micButton.textContent='🎙 START JARVIS';
+ statusText.textContent='SYSTEM ONLINE · READY';
+}
+
+function startRecognition(mode){
+ if(!active||busy)return;
+
+ const SpeechRecognition=
+  window.SpeechRecognition||window.webkitSpeechRecognition;
+
+ if(!SpeechRecognition)return;
+
+ currentMode=mode;
+
+ const r=new SpeechRecognition();
+ recognition=r;
+
+ r.lang='en-IN';
+ r.continuous=false;
+ r.interimResults=false;
+ r.maxAlternatives=1;
+
+ let handled=false;
+
+ statusText.textContent=
+  mode==='wake'?'LISTENING FOR HEY JARVIS...':'LISTENING TO YOUR COMMAND...';
+
+ r.onresult=e=>{
+  if(handled)return;
+  handled=true;
+
+  const transcript=e.results[0][0].transcript.trim();
+
+  if(mode==='wake'){
+   const phrase=transcript.toLowerCase();
+
+   if(phrase.includes('hey jarvis')||
+      phrase.includes('hey jervis')||
+      phrase.includes('hey jars')){
+    busy=true;
+    statusText.textContent='JARVIS ACTIVATED';
+
+    speak('Yes, boss?',()=>{
+     busy=false;
+     startRecognition('command');
+    });
+   }
+  }else{
+   busy=true;
+   add(transcript,'user');
+   sendText(transcript);
+  }
+ };
+
+ r.onerror=e=>{
+  if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+   stopWakeMode();
+   statusText.textContent='MICROPHONE PERMISSION REQUIRED';
+  }
+ };
+
+ r.onend=()=>{
+  if(recognition===r)recognition=null;
+
+  if(active&&!busy&&!handled){
+   restartTimer=setTimeout(()=>startRecognition(mode),900);
+  }
+ };
+
+ try{
+  r.start();
+ }catch(e){
+  statusText.textContent='MICROPHONE RESTARTING...';
+  restartTimer=setTimeout(()=>startRecognition(mode),1500);
+ }
+}
+
 async function send(){
  const text=input.value.trim();
  if(!text)return;
 
  input.value='';
  add(text,'user');
+ await sendText(text);
+}
+
+async function sendText(text){
+ busy=true;
  statusText.textContent='JARVIS IS THINKING...';
 
  try{
@@ -164,52 +260,27 @@ async function send(){
   if(!reply)throw new Error('Empty response');
 
   add(reply,'jarvis');
-  speak(reply);
-  statusText.textContent='SYSTEM ONLINE · READY';
+
+  speak(reply,()=>{
+   busy=false;
+
+   if(active){
+    startRecognition('wake');
+   }else{
+    statusText.textContent='SYSTEM ONLINE · READY';
+   }
+  });
 
  }catch(e){
-  const reply="Boss, my AI connection is having trouble. Please try again.";
+  const reply='Boss, my AI connection is having trouble. Please try again.';
   add(reply,'jarvis');
-  speak(reply);
-  statusText.textContent='AI CONNECTION ERROR';
+
+  speak(reply,()=>{
+   busy=false;
+   if(active)startRecognition('wake');
+   else statusText.textContent='AI CONNECTION ERROR';
+  });
  }
-}
-
-// Voice input
-function listen(){
- const SpeechRecognition=
-  window.SpeechRecognition ||
-  window.webkitSpeechRecognition;
-
- if(!SpeechRecognition){
-  const msg="Boss, voice recognition is not supported in this browser. Please try Safari.";
-  add(msg,'jarvis');
-  speak(msg);
-  return;
- }
-
- const recognition=new SpeechRecognition();
- recognition.lang='en-IN';
- recognition.interimResults=false;
-
- statusText.textContent='LISTENING, BOSS...';
-
- recognition.onresult=e=>{
-  input.value=e.results[0][0].transcript;
-  send();
- };
-
- recognition.onerror=()=>{
-  statusText.textContent='VOICE INPUT UNAVAILABLE';
- };
-
- recognition.onend=()=>{
-  if(statusText.textContent==='LISTENING, BOSS...'){
-   statusText.textContent='SYSTEM ONLINE · READY';
-  }
- };
-
- recognition.start();
 }
 
 input.addEventListener('keydown',e=>{
@@ -218,4 +289,3 @@ input.addEventListener('keydown',e=>{
 </script>
 </body>
 </html>
-
