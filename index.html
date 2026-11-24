@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#050b18">
+<title>J.A.R.V.I.S.</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#050b18;color:#eaf6ff;font-family:Arial,sans-serif;min-height:100vh}
+header{text-align:center;padding:28px 15px 15px}
+h1{font-size:30px;letter-spacing:7px;color:#55caff;margin:12px}
+.sub{color:#779bb5;font-size:12px;letter-spacing:3px}
+.core{width:125px;height:125px;border:2px solid #43caff;border-radius:50%;margin:25px auto;display:grid;place-items:center;box-shadow:0 0 25px #087dbb,inset 0 0 25px #087dbb}
+.core span{font-size:38px;color:#71dfff}
+.status{text-align:center;color:#55caff;font-size:13px;margin-bottom:20px}
+main{max-width:600px;margin:auto;padding:12px}
+#chat{height:40vh;min-height:230px;overflow:auto;border:1px solid #17405d;border-radius:14px;padding:14px;background:#081426}
+.msg{padding:12px;margin:9px 0;border-radius:12px;line-height:1.5;white-space:pre-wrap}
+.jarvis{background:#102b42;color:#bdeaff}
+.user{background:#153d56;color:white;text-align:right}
+.controls{display:flex;gap:9px;margin-top:12px}
+input{min-width:0;flex:1;background:#0c1c30;border:1px solid #28516e;color:white;padding:14px;border-radius:10px;font-size:16px}
+button{background:#087eae;color:white;border:0;border-radius:10px;padding:13px 16px;font-size:15px}
+#mic{width:100%;margin-top:12px;background:#07547b}
+.small{color:#779bb5;text-align:center;font-size:12px;margin:18px}
+</style>
+</head>
+<body>
+<header>
+<div class="sub">PERSONAL AI ASSISTANT</div>
+<h1>J.A.R.V.I.S.</h1>
+<div class="sub">JUST A RATHER VERY INTELLIGENT SYSTEM</div>
+<div class="core"><span>J</span></div>
+</header>
+<div class="status" id="status">SYSTEM ONLINE · READY</div>
+<main>
+<div id="chat">
+<div class="msg jarvis">Good evening, boss. JARVIS is ready. How may I assist you?</div>
+</div>
+<div class="controls">
+<input id="message" placeholder="Speak or type, boss..." autocomplete="off">
+<button onclick="send()">SEND</button>
+</div>
+<button id="mic" onclick="listen()">🎙 TALK TO JARVIS</button>
+<div class="small">VOICE RESPONSES ENABLED · PERSONAL ASSISTANT</div>
+</main>
+<script>
+const chat=document.getElementById('chat');
+const statusText=document.getElementById('status');
+const input=document.getElementById('message');
+
+function add(text,who){
+ const div=document.createElement('div');
+ div.className='msg '+who;
+ div.textContent=text;
+ chat.appendChild(div);
+ chat.scrollTop=chat.scrollHeight;
+}
+function speak(text){
+ if(!('speechSynthesis' in window))return;
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(text);
+ u.lang='en-GB';
+ u.rate=0.94;
+ u.pitch=0.85;
+ const voices=speechSynthesis.getVoices();
+ const male=voices.find(v=>/male|daniel|george|arthur/i.test(v.name));
+ if(male)u.voice=male;
+ speechSynthesis.speak(u);
+}
+async function send(){
+ const text=input.value.trim();
+ if(!text)return;
+ input.value='';
+ add(text,'user');
+ statusText.textContent='JARVIS IS THINKING...';
+ try{
+  const response=await fetch('/api/chat',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({message:text})
+  });
+  if(!response.ok)throw new Error('AI service unavailable');
+  const data=await response.json();
+  const reply=data.reply;
+  if(!reply)throw new Error('Empty response');
+  add(reply,'jarvis');
+  speak(reply);
+  statusText.textContent='SYSTEM ONLINE · READY';
+ }catch(e){
+  const reply="Boss, my AI connection has not been configured yet. I need my AI brain connected before I can answer that. I'm ready for the next step.";
+  add(reply,'jarvis');
+  speak(reply);
+  statusText.textContent='WAITING FOR AI CONNECTION';
+ }
+}
+function listen(){
+ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SpeechRecognition){
+  const msg="Boss, voice recognition is not supported in this browser. Please try Safari.";
+  add(msg,'jarvis');speak(msg);return;
+ }
+ const recognition=new SpeechRecognition();
+ recognition.lang='en-IN';
+ recognition.interimResults=false;
+ statusText.textContent='LISTENING, BOSS...';
+ recognition.onresult=e=>{
+  input.value=e.results[0][0].transcript;
+  send();
+ };
+ recognition.onerror=()=>{
+  statusText.textContent='VOICE INPUT UNAVAILABLE';
+ };
+ recognition.onend=()=>{
+  if(statusText.textContent==='LISTENING, BOSS...')
+   statusText.textContent='SYSTEM ONLINE · READY';
+ };
+ recognition.start();
+}
+input.addEventListener('keydown',e=>{
+ if(e.key==='Enter')send();
+});
+</script>
+</body>
+</html>
