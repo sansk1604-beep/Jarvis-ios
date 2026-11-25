@@ -118,7 +118,7 @@ select{background:#1d2b43;color:white;border:1px solid var(--border);padding:8px
  <div class="side-label">HISTORY</div>
  <div id="historyList"></div>
  <div style="flex:1"></div>
- <button class="sidebutton" id="openSettings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 13.5a7 7 0 0 0 0-3l2-1.5-2-3-2.3 1a8 8 0 0 0-2.5-1L14 3h-4l-.2 2a8 8 0 0 0-2.5 1L5 5 3 8l2 1.5a7 7 0 0 0 0 3L3 14l2 3 2.3-1a8 8 0 0 0 2.5 1L10 19h4l.2-2a8 8 0 0 0 2.5-1L19 17l2-3z"/></svg>Settings</button>
+ <button class="sidebutton" id="openSettings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 13.5a7 7 0 0 0 0-3l2-1.5-2-3-2-3-2.3 1a8 8 0 0 0-2.5-1L14 3h-4l-.2 2a8 8 0 0 0-2.5 1L5 5 3 8l2 1.5a7 7 0 0 0 0 3L3 14l2 3 2.3-1a8 8 0 0 0 2.5 1L10 19h4l.2-2a8 8 0 0 0 2.5-1L19 17l2-3z"/></svg>Settings</button>
 </aside>
 <div class="settings" id="settings">
  <div class="settings-card">
@@ -201,22 +201,54 @@ function addMessage(role,text){
 function closeSidebar(){$("sidebar").classList.remove("open");$("backdrop").classList.remove("open")}
 function openSidebar(){$("sidebar").classList.add("open");$("backdrop").classList.add("open")}
 function status(t){$("status").textContent=t}
+
+/* Improved iPhone speech output */
 function speak(text){
- if(!window.speechSynthesis)return;
- stopListening();speechSynthesis.cancel();
+ if(!("speechSynthesis" in window)){
+  status("Speech is not supported by this browser.");
+  return;
+ }
+
+ const resumeAfterSpeech=voiceMode;
+ stopListening();
+ speechSynthesis.cancel();
+
  const u=new SpeechSynthesisUtterance(text);
  u.lang=/[\u0900-\u097F]/.test(text)?"hi-IN":"en-IN";
- u.rate=1.02;u.pitch=.9;u.volume=1;
+ u.rate=0.95;
+ u.pitch=0.9;
+ u.volume=1;
+
  const voices=speechSynthesis.getVoices();
- const v=voices.find(x=>x.lang.toLowerCase()===u.lang.toLowerCase())||voices.find(x=>x.lang.toLowerCase().startsWith(u.lang.slice(0,2)));
+ const v=voices.find(x=>x.lang.toLowerCase()===u.lang.toLowerCase())
+  ||voices.find(x=>x.lang.toLowerCase().startsWith(u.lang.slice(0,2)));
  if(v)u.voice=v;
- u.onstart=()=>{speaking=true;if(voiceMode)status("JARVIS is speaking...")};
- u.onend=()=>{speaking=false;if(voiceMode&&listening){status("Listening...");startListening()}};
- u.onerror=()=>{speaking=false};
+
+ u.onstart=()=>{
+  speaking=true;
+  if(voiceMode)status("JARVIS is speaking...");
+ };
+
+ u.onend=()=>{
+  speaking=false;
+  if(resumeAfterSpeech&&voiceMode){
+   status("Listening...");
+   startListening();
+  }else if(voiceMode){
+   status("Ready when you are, boss.");
+  }
+ };
+
+ u.onerror=e=>{
+  speaking=false;
+  if(voiceMode)status("Speech error: "+e.error);
+ };
+
  speechSynthesis.speak(u);
+ speechSynthesis.resume();
 }
 
-/* Correct Gemini backend message format */
+/* Gemini backend connection */
 async function ask(text){
  text=text.trim();
  if(!text)return;
@@ -380,6 +412,7 @@ function closeVoiceMode(){
  voiceMode=false;
  stopListening();
  speechSynthesis.cancel();
+ speaking=false;
  $("voice").classList.remove("open");
  $("composerArea").style.display="block";
 }
@@ -406,24 +439,46 @@ $("sideVoice").onclick=()=>{
 
 $("closeVoice").onclick=closeVoiceMode;
 
+/* Microphone tap unlocks iPhone speech playback */
 $("voiceMic").onclick=()=>{
  if(listening){
   stopListening();
   status("Microphone paused.");
  }else{
   awaiting=false;
-  startListening();
+  speechSynthesis.cancel();
+
+  const unlock=new SpeechSynthesisUtterance("Voice ready.");
+  unlock.lang=lang;
+  unlock.volume=1;
+  unlock.rate=1;
+
+  unlock.onend=()=>{
+   speaking=false;
+   startListening();
+  };
+
+  unlock.onerror=()=>{
+   speaking=false;
+   startListening();
+  };
+
+  speaking=true;
+  status("Starting voice...");
+  speechSynthesis.speak(unlock);
+  speechSynthesis.resume();
  }
 };
 
 $("chatMic").onclick=()=>{
  openVoiceMode();
- startListening();
+ $("voiceMic").click();
 };
 
 $("stopSpeech").onclick=()=>{
  speechSynthesis.cancel();
  speaking=false;
+ stopListening();
  status("Speaking stopped.");
 };
 
