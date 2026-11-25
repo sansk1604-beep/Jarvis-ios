@@ -5,52 +5,136 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#050b18">
-<title>J.A.R.V.I.S.</title>
+<meta name="theme-color" content="#070d19">
+<title>JARVIS AI</title>
 <style>
+:root{
+ --bg:#070d19;--panel:#101c2d;--blue:#39c8ff;
+ --muted:#8ba4bd;--white:#eff8ff;
+}
 *{box-sizing:border-box}
-body{margin:0;background:#050b18;color:#eaf6ff;font-family:Arial,sans-serif;min-height:100vh}
-header{text-align:center;padding:28px 15px 15px}
-h1{font-size:30px;letter-spacing:7px;color:#55caff;margin:12px}
-.sub{color:#779bb5;font-size:12px;letter-spacing:3px}
-.core{width:125px;height:125px;border:2px solid #43caff;border-radius:50%;margin:25px auto;display:grid;place-items:center;box-shadow:0 0 25px #087dbb,inset 0 0 25px #087dbb}
-.core span{font-size:38px;color:#71dfff}
-.status{text-align:center;color:#55caff;font-size:13px;margin-bottom:20px}
-main{max-width:600px;margin:auto;padding:12px}
-#chat{height:40vh;min-height:230px;overflow:auto;border:1px solid #17405d;border-radius:14px;padding:14px;background:#081426}
-.msg{padding:12px;margin:9px 0;border-radius:12px;line-height:1.5;white-space:pre-wrap}
-.jarvis{background:#102b42;color:#bdeaff}
-.user{background:#153d56;color:white;text-align:right}
-.controls{display:flex;gap:9px;margin-top:12px}
-input{min-width:0;flex:1;background:#0c1c30;border:1px solid #28516e;color:white;padding:14px;border-radius:10px;font-size:16px}
-button{background:#087eae;color:white;border:0;border-radius:10px;padding:13px 16px;font-size:15px}
-#mic{width:100%;margin-top:12px;background:#07547b}
-.small{color:#779bb5;text-align:center;font-size:12px;margin:18px}
+body{
+ margin:0;background:radial-gradient(ellipse at 50% 0%,#12314b 0%,#070d19 48%);
+ color:var(--white);font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+ min-height:100vh;
+}
+.app{max-width:760px;margin:auto;padding:18px 16px 25px}
+header{display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:21px;font-weight:800;letter-spacing:4px;color:var(--blue)}
+.tag{font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:5px}
+.status-pill{
+ border:1px solid #24516c;border-radius:30px;padding:8px 11px;
+ color:#7de0ff;font-size:10px;letter-spacing:1px;
+}
+.hero{text-align:center;padding:25px 0 20px}
+.orb{
+ width:145px;height:145px;margin:0 auto 18px;border-radius:50%;
+ display:grid;place-items:center;position:relative;
+ background:radial-gradient(circle,#173e59 0%,#0c2034 48%,#07101e 70%);
+ border:1px solid #42caff;
+ box-shadow:0 0 24px #087dbb,0 0 65px #087dbb44,inset 0 0 25px #1689bc66;
+}
+.orb:before,.orb:after{
+ content:"";position:absolute;border-radius:50%;border:1px solid #39c8ff66;
+}
+.orb:before{inset:-10px;border-top-color:transparent;animation:spin 8s linear infinite}
+.orb:after{inset:-19px;border-bottom-color:transparent;animation:spin 12s linear infinite reverse}
+.orb span{font-size:52px;color:#8ce6ff;text-shadow:0 0 22px #39c8ff}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hero h2{font-size:23px;margin:0 0 7px;letter-spacing:1px}
+.hero p{color:var(--muted);font-size:13px;margin:0}
+#status{color:var(--blue);font-size:11px;letter-spacing:2px;margin-top:14px}
+.panel{
+ background:#0d1929dd;border:1px solid #203a52;
+ border-radius:18px;padding:15px;margin-top:15px;
+ box-shadow:0 10px 35px #0003;
+}
+.panel-title{font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:12px}
+#chat{height:32vh;min-height:210px;max-height:380px;overflow:auto}
+.msg{
+ max-width:90%;padding:12px 14px;border-radius:15px;
+ margin:10px 0;line-height:1.55;font-size:14px;
+ white-space:pre-wrap;overflow-wrap:anywhere;
+}
+.jarvis{background:#142b40;border:1px solid #214b67;color:#d8f3ff}
+.user{background:#07557b;color:white;margin-left:auto}
+.msg-name{font-size:10px;letter-spacing:1px;color:#64d5ff;margin-bottom:5px}
+.quick{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.quick button{
+ flex:0 0 auto;background:#12283b;border:1px solid #28516d;
+ color:#bfeaff;border-radius:20px;padding:10px 13px;font-size:12px;
+}
+.composer{display:flex;gap:9px;margin-top:13px}
+input{
+ flex:1;min-width:0;background:#091423;border:1px solid #29445d;
+ border-radius:13px;padding:14px;color:white;font-size:15px;outline:none;
+}
+input:focus{border-color:var(--blue)}
+button{cursor:pointer}
+.send{
+ background:linear-gradient(135deg,#168fbd,#07517d);
+ color:white;border:0;border-radius:13px;padding:0 18px;font-weight:700;
+}
+.voice{
+ width:100%;margin-top:10px;padding:14px;border-radius:13px;
+ border:1px solid #2388b5;background:#0b3a57;color:#d8f5ff;
+ font-weight:700;letter-spacing:1px;
+}
+.note{text-align:center;color:#637f99;font-size:10px;margin-top:13px;line-height:1.5}
+footer{text-align:center;color:#526b82;font-size:10px;letter-spacing:2px;margin:22px 0 5px}
+@media(min-width:600px){
+ .app{padding-top:25px}
+ .hero{padding:30px 0}
+ #chat{height:34vh}
+}
 </style>
 </head>
 <body>
+<div class="app">
+
 <header>
-<div class="sub">PERSONAL AI ASSISTANT</div>
-<h1>J.A.R.V.I.S.</h1>
-<div class="sub">JUST A RATHER VERY INTELLIGENT SYSTEM</div>
-<div class="core"><span>J</span></div>
+ <div>
+  <div class="brand">J.A.R.V.I.S.</div>
+  <div class="tag">PERSONAL INTELLIGENCE SYSTEM</div>
+ </div>
+ <div class="status-pill">● ONLINE</div>
 </header>
 
-<div class="status" id="status">SYSTEM ONLINE · READY</div>
+<section class="hero">
+ <div class="orb"><span>J</span></div>
+ <h2>At your service, boss.</h2>
+ <p>Your personal AI companion</p>
+ <div id="status">SYSTEM READY</div>
+</section>
 
-<main>
-<div id="chat">
-<div class="msg jarvis">Good evening, boss. JARVIS is ready. How may I assist you?</div>
+<section class="panel">
+ <div class="panel-title">CONVERSATION</div>
+ <div id="chat">
+  <div class="msg jarvis">
+   <div class="msg-name">JARVIS</div>
+   Good day, boss. I'm ready. What shall we work on?
+  </div>
+ </div>
+ <div class="composer">
+  <input id="message" placeholder="Ask me anything, boss..." autocomplete="off">
+  <button class="send" id="sendButton" onclick="send()">SEND</button>
+ </div>
+ <button class="voice" id="mic" onclick="toggleWakeMode()">🎙 ACTIVATE VOICE MODE</button>
+ <div class="note">Activate once, then say "Hey JARVIS" while this page remains open.</div>
+</section>
+
+<section class="panel">
+ <div class="panel-title">QUICK ACTIONS</div>
+ <div class="quick">
+  <button onclick="quickAsk('Help me plan my day.')">Plan my day</button>
+  <button onclick="quickAsk('Give me practical advice for today.')">Get advice</button>
+  <button onclick="quickAsk('Teach me something interesting.')">Teach me</button>
+  <button onclick="quickAsk('Help me organise my goals.')">My goals</button>
+ </div>
+</section>
+
+<footer>JARVIS AI · PERSONAL ASSISTANT</footer>
 </div>
-
-<div class="controls">
-<input id="message" placeholder="Speak or type, boss..." autocomplete="off">
-<button onclick="send()">SEND</button>
-</div>
-
-<button id="mic" onclick="toggleWakeMode()">🎙 START JARVIS</button>
-<div class="small">SAY "HEY JARVIS" TO WAKE YOUR ASSISTANT</div>
-</main>
 
 <script>
 const chat=document.getElementById('chat');
@@ -60,29 +144,27 @@ const micButton=document.getElementById('mic');
 
 let active=false;
 let busy=false;
-let currentMode='wake';
 let recognition=null;
 let restartTimer=null;
 
 function add(text,who){
  const div=document.createElement('div');
  div.className='msg '+who;
- div.textContent=text;
+ if(who==='jarvis'){
+  const name=document.createElement('div');
+  name.className='msg-name';
+  name.textContent='JARVIS';
+  div.appendChild(name);
+ }
+ const content=document.createElement('div');
+ content.textContent=text;
+ div.appendChild(content);
  chat.appendChild(div);
  chat.scrollTop=chat.scrollHeight;
 }
 
-let availableVoices=[];
-
 function loadVoices(){
- if('speechSynthesis' in window){
-  availableVoices=speechSynthesis.getVoices();
- }
-}
-
-if('speechSynthesis' in window){
- loadVoices();
- speechSynthesis.onvoiceschanged=loadVoices;
+ return speechSynthesis.getVoices();
 }
 
 function speak(text,callback){
@@ -92,34 +174,72 @@ function speak(text,callback){
  }
 
  speechSynthesis.cancel();
+ const hindi=/[\u0900-\u097F]/.test(text);
+ const utterance=new SpeechSynthesisUtterance(text);
+ utterance.lang=hindi?'hi-IN':'en-IN';
+ utterance.rate=0.94;
+ utterance.pitch=0.85;
+ utterance.volume=1;
 
- const isHindi=/[\u0900-\u097F]/.test(text);
- const u=new SpeechSynthesisUtterance(text);
-
- u.lang=isHindi?'hi-IN':'en-IN';
- u.rate=0.92;
- u.pitch=0.82;
- u.volume=1;
-
- loadVoices();
-
- const preferred=availableVoices.find(v=>
-  isHindi
-   ? v.lang.toLowerCase().startsWith('hi')
-   : /daniel|george|arthur/i.test(v.name)&&
-     v.lang.toLowerCase().startsWith('en')
+ const voices=loadVoices();
+ const voice=voices.find(v=>
+  hindi?v.lang.toLowerCase().startsWith('hi'):
+  v.lang.toLowerCase().startsWith('en-in')
  );
+ if(voice)utterance.voice=voice;
 
- const matching=availableVoices.find(v=>
-  v.lang.toLowerCase().startsWith(isHindi?'hi':'en-in')
- );
+ utterance.onend=()=>{if(callback)callback()};
+ utterance.onerror=()=>{if(callback)callback()};
+ speechSynthesis.speak(utterance);
+}
 
- if(preferred||matching)u.voice=preferred||matching;
+function quickAsk(text){
+ input.value=text;
+ send();
+}
 
- u.onend=()=>{if(callback)callback();};
- u.onerror=()=>{if(callback)callback();};
+async function send(){
+ const text=input.value.trim();
+ if(!text||busy)return;
+ input.value='';
+ add(text,'user');
+ await sendText(text);
+}
 
- speechSynthesis.speak(u);
+async function sendText(text){
+ busy=true;
+ statusText.textContent='THINKING...';
+
+ try{
+  const response=await fetch('/api/chat',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({message:text})
+  });
+
+  if(!response.ok)throw new Error('AI service unavailable');
+
+  const data=await response.json();
+  if(!data.reply)throw new Error('Empty response');
+
+  add(data.reply,'jarvis');
+  statusText.textContent='RESPONDING...';
+
+  speak(data.reply,()=>{
+   busy=false;
+   if(active)startRecognition('wake');
+   else statusText.textContent='SYSTEM READY';
+  });
+
+ }catch(error){
+  const message='Boss, my AI connection is having trouble. Please try again.';
+  add(message,'jarvis');
+  speak(message,()=>{
+   busy=false;
+   if(active)startRecognition('wake');
+   else statusText.textContent='CONNECTION ERROR';
+  });
+ }
 }
 
 function toggleWakeMode(){
@@ -128,20 +248,15 @@ function toggleWakeMode(){
   return;
  }
 
- const SpeechRecognition=
-  window.SpeechRecognition||window.webkitSpeechRecognition;
-
+ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
  if(!SpeechRecognition){
-  add("Boss, speech recognition is not supported here. Please use Safari.",'jarvis');
-  speak("Boss, speech recognition is not supported here.");
+  add('Boss, this browser does not support speech recognition. Please use Safari.','jarvis');
   return;
  }
 
  active=true;
- busy=false;
- micButton.textContent='⏹ STOP LISTENING';
- statusText.textContent='JARVIS IS READY FOR YOUR WAKE WORD';
-
+ micButton.textContent='⏹ STOP VOICE MODE';
+ statusText.textContent='VOICE MODE ACTIVATED';
  startRecognition('wake');
 }
 
@@ -151,52 +266,40 @@ function stopWakeMode(){
  clearTimeout(restartTimer);
 
  if(recognition){
-  try{recognition.abort();}catch(e){}
+  try{recognition.abort()}catch(e){}
   recognition=null;
  }
 
- micButton.textContent='🎙 START JARVIS';
- statusText.textContent='SYSTEM ONLINE · READY';
+ micButton.textContent='🎙 ACTIVATE VOICE MODE';
+ statusText.textContent='SYSTEM READY';
 }
 
 function startRecognition(mode){
  if(!active||busy)return;
 
- const SpeechRecognition=
-  window.SpeechRecognition||window.webkitSpeechRecognition;
-
+ const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
  if(!SpeechRecognition)return;
-
- currentMode=mode;
 
  const r=new SpeechRecognition();
  recognition=r;
-
  r.lang='en-IN';
  r.continuous=false;
  r.interimResults=false;
- r.maxAlternatives=1;
 
  let handled=false;
 
- statusText.textContent=
-  mode==='wake'?'LISTENING FOR HEY JARVIS...':'LISTENING TO YOUR COMMAND...';
+ statusText.textContent=mode==='wake'?'LISTENING FOR HEY JARVIS...':'LISTENING TO BOSS...';
 
  r.onresult=e=>{
   if(handled)return;
   handled=true;
-
   const transcript=e.results[0][0].transcript.trim();
 
   if(mode==='wake'){
    const phrase=transcript.toLowerCase();
-
-   if(phrase.includes('hey jarvis')||
-      phrase.includes('hey jervis')||
-      phrase.includes('hey jars')){
+   if(phrase.includes('hey jarvis')||phrase.includes('hey jervis')||phrase.includes('hey jars')){
     busy=true;
-    statusText.textContent='JARVIS ACTIVATED';
-
+    statusText.textContent='AWAKE';
     speak('Yes, boss?',()=>{
      busy=false;
      startRecognition('command');
@@ -212,75 +315,19 @@ function startRecognition(mode){
  r.onerror=e=>{
   if(e.error==='not-allowed'||e.error==='service-not-allowed'){
    stopWakeMode();
-   statusText.textContent='MICROPHONE PERMISSION REQUIRED';
+   statusText.textContent='MICROPHONE ACCESS NEEDED';
   }
  };
 
  r.onend=()=>{
   if(recognition===r)recognition=null;
-
   if(active&&!busy&&!handled){
    restartTimer=setTimeout(()=>startRecognition(mode),900);
   }
  };
 
- try{
-  r.start();
- }catch(e){
-  statusText.textContent='MICROPHONE RESTARTING...';
-  restartTimer=setTimeout(()=>startRecognition(mode),1500);
- }
-}
-
-async function send(){
- const text=input.value.trim();
- if(!text)return;
-
- input.value='';
- add(text,'user');
- await sendText(text);
-}
-
-async function sendText(text){
- busy=true;
- statusText.textContent='JARVIS IS THINKING...';
-
- try{
-  const response=await fetch('/api/chat',{
-   method:'POST',
-   headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({message:text})
-  });
-
-  if(!response.ok)throw new Error('AI service unavailable');
-
-  const data=await response.json();
-  const reply=data.reply;
-
-  if(!reply)throw new Error('Empty response');
-
-  add(reply,'jarvis');
-
-  speak(reply,()=>{
-   busy=false;
-
-   if(active){
-    startRecognition('wake');
-   }else{
-    statusText.textContent='SYSTEM ONLINE · READY';
-   }
-  });
-
- }catch(e){
-  const reply='Boss, my AI connection is having trouble. Please try again.';
-  add(reply,'jarvis');
-
-  speak(reply,()=>{
-   busy=false;
-   if(active)startRecognition('wake');
-   else statusText.textContent='AI CONNECTION ERROR';
-  });
- }
+ try{r.start()}
+ catch(e){restartTimer=setTimeout(()=>startRecognition(mode),1500)}
 }
 
 input.addEventListener('keydown',e=>{
