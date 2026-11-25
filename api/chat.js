@@ -1,4 +1,88 @@
 
+const MODELS = [
+  "gemini-3.8-flash",
+  "gemini-3.5-flash-lite"
+];
+
+const SYSTEM_PROMPT = `
+You are JARVIS, an intelligent personal AI assistant.
+
+PERSONALITY:
+- Speak naturally, confidently and respectfully.
+- Address the user as boss occasionally.
+- Be intelligent, practical, helpful and honest.
+- Understand English, Hindi and Hinglish.
+- Always reply in the language the user uses.
+- Give useful advice and clear explanations.
+- Remember the conversation context provided.
+- Never pretend to perform actions you cannot perform.
+- Avoid repetitive robotic responses.
+
+You are JARVIS. Your purpose is to assist your boss.
+`;
+
+const sleep = ms =>
+  new Promise(resolve => setTimeout(resolve, ms));
+
+async function callGemini(model, contents, apiKey) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 18000);
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: SYSTEM_PROMPT }]
+          },
+          contents,
+          generationConfig: {
+            maxOutputTokens: 2048
+          }
+        }),
+        signal: controller.signal
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error = new Error(
+        data?.error?.message || "Gemini request failed."
+      );
+      error.status = response.status;
+      throw error;
+    }
+
+    const reply = data?.candidates?.[0]?.content?.parts
+      ?.map(part => part.text || "")
+      .join("")
+      .trim();
+
+    if (!reply) {
+      throw new Error("Gemini returned an empty response.");
+    }
+
+    return reply;
+
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function isTemporary(error) {
+  return [
+    408, 429, 500, 502, 503, 504
+  ].includes(error.status) ||
+    error.name === "AbortError";
+}
+
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
@@ -12,17 +96,17 @@ export default async function handler(req, res) {
 
   if (!apiKey) {
     return res.status(500).json({
-      error: "Gemini API key is missing in Vercel."
+      error: "GEMINI_API_KEY is missing in Vercel."
     });
   }
 
   try {
     const { message, messages } = req.body || {};
 
-    let conversation = [];
+    let contents = [];
 
     if (Array.isArray(messages)) {
-      conversation = messages
+      contents = messages
         .filter(item =>
           item &&
           ["user", "model"].includes(item.role) &&
@@ -32,122 +116,94 @@ export default async function handler(req, res) {
         .slice(-16)
         .map(item => ({
           role: item.role,
-          parts: [{ text: item.text.slice(0, 6000) }]
+          parts: [{
+            text: item.text.slice(0, 6000)
+          }]
         }));
     }
 
     if (
-      conversation.length === 0 &&
+      contents.length === 0 &&
       typeof message === "string" &&
       message.trim()
     ) {
-      conversation.push({
+      contents.push({
         role: "user",
-        parts: [{ text: message.trim().slice(0, 6000) }]
+        parts: [{
+          text: message.trim().slice(0, 6000)
+        }]
       });
     }
 
-    if (!conversation.length) {
+    if (!contents.length) {
       return res.status(400).json({
         error: "Please send a message."
       });
     }
 
-    if (conversation[conversation.length - 1].role !== "user") {
+    if (contents[contents.length - 1].role !== "user") {
       return res.status(400).json({
         error: "The latest message must be from the user."
       });
     }
 
-    const controller = new AbortController();
+    let lastError;
 
-    const timeout = setTimeout(() => {
-      controller.abort();
-    }, 45000);
+    for (const model of MODELS) {
+      // Two attempts for the primary model, one for the backup.
+      const attempts = model === MODELS[0] ? 2 : 1;
 
-    let response;
+      for (let attempt = 0; attempt < attempts; attempt++) {
+        try {
+          const reply = await callGemini(
+            model,
+            contents,
+            apiKey
+          );
 
-    try {
-      response = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey
-          },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{
-                text: `You are JARVIS, a highly intelligent personal AI assistant.
+          return res.status(200).json({
+            reply,
+            model
+          });
 
-Your personality:
-- Speak naturally, confidently and respectfully.
-- Address the user as boss occasionally.
-- Be practical, helpful and honest.
-- Understand English, Hindi and Hinglish.
-- Reply in the same language the user uses.
-- Give clear advice and useful explanations.
-- Never pretend to perform actions you cannot perform.
-- Remember the conversation context provided to you.
-- Avoid unnecessary robotic phrases.
-- Keep simple answers concise and complicated answers detailed.
+        } catch (error) {
+          lastError = error;
 
-You are JARVIS. You are here to assist your boss.`
-              }]
-            },
-            contents: conversation,
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 2048
-            }
-          }),
-          signal: controller.signal
+          console.error(
+            `JARVIS ${model} attempt ${attempt + 1}:`,
+            error.message
+          );
+
+          if (!isTemporary(error)) {
+            break;
+          }
+
+          if (attempt < attempts - 1) {
+            await sleep(900);
+          }
         }
-      );
-    } finally {
-      clearTimeout(timeout);
+      }
     }
 
-    const data = await response.json();
+    console.error("All JARVIS models failed:", lastError);
 
-    if (!response.ok) {
-      console.error("Gemini API error:", data);
+    const status = lastError?.status || 503;
 
-      return res.status(
-        response.status >= 500 ? 502 : response.status
-      ).json({
-        error: data?.error?.message ||
-          "Gemini could not process the request."
-      });
-    }
-
-    const reply = data?.candidates?.[0]?.content?.parts
-      ?.map(part => part.text || "")
-      .join("")
-      .trim();
-
-    if (!reply) {
-      return res.status(502).json({
-        error: "JARVIS received an empty response."
-      });
-    }
-
-    return res.status(200).json({
-      reply
+    return res.status(
+      status >= 400 && status < 500 && status !== 408 && status !== 429
+        ? status
+        : 503
+    ).json({
+      error: lastError?.name === "AbortError"
+        ? "AI response timed out. Please try again."
+        : "Both AI models are temporarily unavailable. Please try again shortly."
     });
 
   } catch (error) {
     console.error("JARVIS server error:", error);
 
-    if (error.name === "AbortError") {
-      return res.status(504).json({
-        error: "JARVIS took too long to respond. Please try again."
-      });
-    }
-
     return res.status(500).json({
-      error: "JARVIS connection failed. Please try again."
+      error: "JARVIS encountered a server error."
     });
   }
 }
