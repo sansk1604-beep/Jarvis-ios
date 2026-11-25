@@ -5,13 +5,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<meta name="theme-color" content="#10151e">
-<title>JARVIS 2.0</title>
+<meta name="theme-color" content="#070d18">
+<title>JARVIS 3.0</title>
 <style>
 :root{
- --bg:#10151e;--side:#171e29;--panel:#202a38;
- --line:#303c4c;--text:#edf2f8;--muted:#929eae;
- --blue:#55baff;--accent:#1688d4;
+ --bg:#070d18;--panel:#0d1929;--panel2:#12243a;
+ --line:#1c3853;--text:#edf7ff;--muted:#8da6bd;
+ --blue:#55c7ff;--cyan:#9be7ff;--accent:#168bd4;
 }
 *{box-sizing:border-box}
 body{
@@ -19,18 +19,18 @@ body{
  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
  height:100dvh;overflow:hidden
 }
-button,input{font:inherit}
+button,input,textarea{font:inherit}
 button{cursor:pointer}
 .app{height:100dvh;display:flex;overflow:hidden}
 .sidebar{
- width:275px;flex-shrink:0;background:var(--side);
+ width:270px;flex-shrink:0;background:#0a1422;
  border-right:1px solid var(--line);padding:16px;
- display:flex;flex-direction:column;z-index:5;
+ display:flex;flex-direction:column;z-index:5
 }
-.brand{font-size:20px;font-weight:800;letter-spacing:3px;padding:10px 5px 22px}
+.brand{font-size:21px;font-weight:800;letter-spacing:4px;padding:12px 5px 25px}
 .brand span{color:var(--blue)}
 .newchat{
- background:#253447;border:1px solid #3b526a;color:white;
+ background:#10283d;border:1px solid #245477;color:white;
  padding:13px;border-radius:12px;text-align:left;margin-bottom:20px
 }
 .side-label{font-size:10px;letter-spacing:2px;color:var(--muted);margin:8px 5px}
@@ -40,67 +40,102 @@ button{cursor:pointer}
  white-space:nowrap;padding:12px 10px;background:transparent;
  border:0;color:#cbd5e1;border-radius:9px;font-size:13px
 }
-.history-item.active,.history-item:active{background:#29384b}
+.history-item.active,.history-item:active{background:#172d43}
 .sidebar-bottom{border-top:1px solid var(--line);padding-top:14px}
 .profile{display:flex;align-items:center;gap:10px;padding:8px}
 .avatar{
  width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
- background:#16466b;color:#a9e2ff;font-weight:800
+ background:#123e5c;color:#a9e2ff;font-weight:800
 }
 .profile small{display:block;color:var(--muted);margin-top:3px}
 .main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 .topbar{
  height:62px;display:flex;align-items:center;justify-content:space-between;
  padding:0 16px;border-bottom:1px solid var(--line);flex-shrink:0;
+ background:#091321
 }
 .top-left{display:flex;align-items:center;gap:13px}
 .icon-btn{
  width:39px;height:39px;border-radius:11px;background:transparent;
  border:1px solid var(--line);color:var(--text);font-size:19px
 }
-.top-title{font-size:15px;font-weight:650}
+.top-title{font-size:15px;font-weight:700;letter-spacing:1px}
 .online{font-size:11px;color:#7cdda8}
 .online:before{content:"● ";font-size:9px}
-.chat-area{flex:1;overflow:auto;padding:22px 16px 30px;scroll-behavior:smooth}
-.messages{max-width:760px;margin:auto}
-.welcome{padding:35px 5px 22px}
-.welcome h1{font-size:29px;line-height:1.25;margin:0 0 12px}
+.chat-area{flex:1;overflow:auto;padding:20px 16px 30px;scroll-behavior:smooth}
+.messages{max-width:780px;margin:auto}
+.welcome{text-align:center;padding:22px 5px 30px}
+.eyebrow{color:#70cfff;letter-spacing:4px;font-size:10px;font-weight:700}
+.welcome h1{font-size:29px;line-height:1.25;margin:18px 0 8px}
 .welcome h1 span{color:var(--blue)}
-.welcome p{color:var(--muted);font-size:14px;line-height:1.6}
+.welcome p{color:var(--muted);font-size:14px;line-height:1.6;max-width:460px;margin:0 auto}
+.orb-wrap{display:flex;justify-content:center;align-items:center;margin:12px auto 20px}
+.orb{
+ position:relative;width:174px;height:174px;border-radius:50%;
+ display:grid;place-items:center;
+ background:radial-gradient(circle at 50% 42%,#1b668e 0%,#103b5b 38%,#091a2d 70%,#07111f 100%);
+ border:1px solid #65d5ff;
+ box-shadow:0 0 20px #159eea66,0 0 65px #087bc955,inset 0 0 35px #4acaff55;
+ animation:orbPulse 3s ease-in-out infinite
+}
+.orb:before,.orb:after{
+ content:"";position:absolute;inset:-13px;border-radius:50%;
+ border:1px solid #4bc8ff88;animation:ring 4s linear infinite
+}
+.orb:after{inset:-24px;border-color:#3aa9ed44;animation-duration:6s}
+.orb-core{
+ font-size:27px;font-weight:800;letter-spacing:4px;color:#d5f5ff;
+ text-shadow:0 0 15px #66d7ff
+}
+.orb-status{
+ position:absolute;bottom:36px;font-size:8px;letter-spacing:3px;
+ color:#8bdfff
+}
+@keyframes orbPulse{
+ 0%,100%{transform:scale(1);filter:brightness(1)}
+ 50%{transform:scale(1.035);filter:brightness(1.25)}
+}
+@keyframes ring{to{transform:rotate(360deg)}}
+.orb.listening{box-shadow:0 0 35px #20caff,0 0 90px #168bd4,inset 0 0 50px #69dcff}
+.orb.speaking{animation:orbSpeak .55s ease-in-out infinite alternate}
+@keyframes orbSpeak{to{transform:scale(1.09);filter:brightness(1.5)}}
+.primary-voice{
+ background:linear-gradient(135deg,#168bd4,#14639b);
+ border:1px solid #51caff;color:white;border-radius:30px;
+ padding:13px 24px;font-weight:650;box-shadow:0 0 22px #168bd455
+}
 .suggestions{
- display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:25px
+ display:grid;grid-template-columns:1fr 1fr;gap:10px;
+ margin:28px auto 0;max-width:600px;text-align:left
 }
 .suggestion{
- background:#192433;border:1px solid var(--line);border-radius:13px;
- color:var(--text);padding:14px;text-align:left;min-height:83px
+ background:#0e1d2e;border:1px solid var(--line);border-radius:13px;
+ color:var(--text);padding:14px;text-align:left;min-height:78px
 }
 .suggestion strong{display:block;font-size:13px;margin-bottom:7px}
 .suggestion small{color:var(--muted);font-size:11px}
 .message{display:flex;gap:11px;margin:23px 0;align-items:flex-start}
 .message.user{justify-content:flex-end}
-.message.user .bubble{background:#17446a;border:1px solid #28618c}
-.message.jarvis .bubble{background:transparent;flex:1}
+.message.user .bubble{background:#123b5c;border:1px solid #28618c}
+.message.jarvis .bubble{background:#0d1929;border:1px solid #19334b;flex:1}
 .message.user .bubble{max-width:85%}
 .mini-avatar{
  width:30px;height:30px;border-radius:50%;flex-shrink:0;
- display:grid;place-items:center;background:#173c5b;color:#8ed8ff;font-size:12px
+ display:grid;place-items:center;background:#123e5c;color:#8ed8ff;font-size:12px
 }
 .bubble{
- padding:11px 13px;border-radius:14px;line-height:1.65;
+ padding:12px 14px;border-radius:14px;line-height:1.65;
  font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere
 }
-.bubble p{margin:0 0 10px}
-.bubble p:last-child{margin-bottom:0}
 .typing{color:var(--muted);font-size:13px;padding:12px}
 .composer-wrap{
  padding:12px 15px 17px;border-top:1px solid var(--line);
- background:linear-gradient(transparent,#10151e 18%)
+ background:#091321
 }
-.composer{max-width:760px;margin:auto}
+.composer{max-width:780px;margin:auto}
 .input-box{
  display:flex;align-items:flex-end;gap:9px;padding:9px;
- background:#202a38;border:1px solid #3a485a;border-radius:19px;
- box-shadow:0 7px 30px #0003
+ background:#102034;border:1px solid #29445f;border-radius:19px
 }
 .input-box textarea{
  flex:1;min-width:0;resize:none;max-height:120px;
@@ -120,37 +155,31 @@ button{cursor:pointer}
 .disclaimer{text-align:center;color:#718094;font-size:10px;margin-top:10px}
 .mobile-shade{display:none}
 .voice-screen{
- position:absolute;inset:0;background:radial-gradient(ellipse at center,#153553,#10151e 70%);
+ position:absolute;inset:0;
+ background:radial-gradient(ellipse at center,#123b5b 0%,#081626 48%,#070d18 78%);
  z-index:10;display:none;flex-direction:column;align-items:center;
  justify-content:center;padding:25px;text-align:center
 }
 .voice-screen.show{display:flex}
 .close-voice{
  position:absolute;top:18px;right:18px;
- background:#25364a;border:0;color:white;border-radius:50%;
+ background:#1b344c;border:1px solid #31516c;color:white;border-radius:50%;
  width:42px;height:42px;font-size:21px
 }
-.voice-orb{
- width:170px;height:170px;border-radius:50%;
- display:grid;place-items:center;margin:30px;
- border:1px solid #57c5ff;
- background:radial-gradient(circle,#24658d,#10283e 65%,#10151e);
- box-shadow:0 0 35px #168bd877,inset 0 0 35px #168bd855;
- animation:pulse 2.5s infinite
-}
-.voice-orb span{font-size:58px;color:#b6eaff}
-@keyframes pulse{50%{box-shadow:0 0 65px #168bd899,inset 0 0 45px #168bd888}}
-.voice-screen h2{font-size:23px}
-.voice-screen p{color:#aab9c9;font-size:13px}
-.voice-controls{display:flex;gap:13px;margin-top:25px}
+.voice-orb{margin:35px auto 20px}
+.voice-screen h2{font-size:23px;margin:12px}
+.voice-screen p{color:#aab9c9;font-size:13px;line-height:1.5}
+.voice-controls{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;justify-content:center}
 .voice-controls button{
  border:1px solid #42617d;background:#1c344b;color:white;
  padding:13px 20px;border-radius:30px
 }
+.voice-controls .stop-button{background:#542b36;border-color:#a94d5f}
 .lang-select{
- background:#202a38;border:1px solid var(--line);
- color:#cbd5e1;border-radius:9px;padding:7px;font-size:11px
+ background:#102034;border:1px solid var(--line);
+ color:#cbd5e1;border-radius:9px;padding:9px;font-size:12px
 }
+.voice-hint{max-width:300px;margin-top:20px!important;font-size:11px!important}
 @media(max-width:700px){
  .sidebar{
   position:absolute;left:0;top:0;bottom:0;
@@ -161,17 +190,15 @@ button{cursor:pointer}
  .mobile-shade.show{
   display:block;position:absolute;inset:0;background:#0009;z-index:4
  }
- .welcome{padding-top:28px}
- .welcome h1{font-size:27px}
+ .welcome{padding-top:12px}
+ .welcome h1{font-size:26px}
+ .orb{width:158px;height:158px}
 }
-@media(min-width:701px){
- .mobile-shade{display:none!important}
-}
+@media(min-width:701px){.mobile-shade{display:none!important}}
 </style>
 </head>
 <body>
 <div class="app">
-
 <aside class="sidebar" id="sidebar">
  <div class="brand">J.A.R.V.<span>I.S.</span></div>
  <button class="newchat" onclick="newChat()">＋ &nbsp; New conversation</button>
@@ -184,39 +211,37 @@ button{cursor:pointer}
   </div>
  </div>
 </aside>
-
 <div class="mobile-shade" id="shade" onclick="toggleSidebar()"></div>
-
 <main class="main">
  <header class="topbar">
   <div class="top-left">
    <button class="icon-btn" onclick="toggleSidebar()">☰</button>
-   <div class="top-title">JARVIS <span style="color:#55baff">2.0</span></div>
+   <div class="top-title">JARVIS <span style="color:#55baff">3.0</span></div>
   </div>
   <div style="display:flex;align-items:center;gap:12px">
-   <span class="online">Online</span>
-   <button class="icon-btn" onclick="newChat()" title="New chat">＋</button>
+   <span class="online">System ready</span>
+   <button class="icon-btn" onclick="newChat()">＋</button>
   </div>
  </header>
 
  <section class="chat-area" id="chatArea">
   <div class="messages" id="messages">
    <div class="welcome" id="welcome">
-    <h1>Good day, <span>Boss.</span></h1>
-    <p>I'm JARVIS, your personal AI assistant. Ask me anything, explore an idea, or tell me what you need help with.</p>
+    <div class="eyebrow">PERSONAL AI SYSTEM</div>
+    <div class="orb-wrap">
+     <div class="orb" id="mainOrb">
+      <div class="orb-core">JARVIS</div>
+      <div class="orb-status">ONLINE</div>
+     </div>
+    </div>
+    <h1>At your service, <span>Boss.</span></h1>
+    <p>Your personal AI assistant is ready. Ask a question, start a voice session, or tell me what you want to accomplish.</p>
+    <button class="primary-voice" style="margin-top:20px" onclick="openVoice()">◉ &nbsp; Activate voice mode</button>
     <div class="suggestions">
-     <button class="suggestion" onclick="quickAsk('Help me plan my day.')">
-      <strong>◷ Plan my day</strong><small>Organise your schedule and tasks</small>
-     </button>
-     <button class="suggestion" onclick="quickAsk('Teach me something fascinating today.')">
-      <strong>✧ Learn something</strong><small>Explore a new idea or topic</small>
-     </button>
-     <button class="suggestion" onclick="quickAsk('Help me think through an important decision.')">
-      <strong>◇ Think with me</strong><small>Advice and problem solving</small>
-     </button>
-     <button class="suggestion" onclick="quickAsk('Help me organise my goals.')">
-      <strong>▤ My goals</strong><small>Make a practical action plan</small>
-     </button>
+     <button class="suggestion" onclick="quickAsk('Help me plan my day.')"><strong>◷ Plan my day</strong><small>Organise your schedule and tasks</small></button>
+     <button class="suggestion" onclick="quickAsk('Teach me something fascinating today.')"><strong>✧ Learn something</strong><small>Explore a new idea or topic</small></button>
+     <button class="suggestion" onclick="quickAsk('Help me think through an important decision.')"><strong>◇ Think with me</strong><small>Advice and problem solving</small></button>
+     <button class="suggestion" onclick="quickAsk('Help me organise my goals.')"><strong>▤ My goals</strong><small>Make a practical action plan</small></button>
     </div>
    </div>
   </div>
@@ -225,10 +250,10 @@ button{cursor:pointer}
  <section class="composer-wrap">
   <div class="composer">
    <div class="input-box">
-    <button class="tool-btn" onclick="newChat()" title="New chat">＋</button>
+    <button class="tool-btn" onclick="newChat()">＋</button>
     <textarea id="message" rows="1" placeholder="Message JARVIS..." oninput="resizeInput(this)" onkeydown="inputKey(event)"></textarea>
-    <button class="tool-btn voice-btn" onclick="openVoice()" title="Voice mode">🎙</button>
-    <button class="send-btn" onclick="sendMessage()" title="Send">↑</button>
+    <button class="tool-btn voice-btn" onclick="openVoice()">🎙</button>
+    <button class="send-btn" onclick="sendMessage()">↑</button>
    </div>
    <div class="disclaimer">JARVIS can make mistakes. Verify important information.</div>
   </div>
@@ -236,19 +261,25 @@ button{cursor:pointer}
 
  <section class="voice-screen" id="voiceScreen">
   <button class="close-voice" onclick="closeVoice()">×</button>
-  <div class="tagline" style="color:#75cfff;letter-spacing:3px;font-size:11px">JARVIS VOICE MODE</div>
-  <div class="voice-orb"><span>J</span></div>
+  <div class="eyebrow">JARVIS VOICE INTERFACE</div>
+  <div class="orb-wrap voice-orb">
+   <div class="orb" id="voiceOrb">
+    <div class="orb-core">JARVIS</div>
+    <div class="orb-status">VOICE SYSTEM</div>
+   </div>
+  </div>
   <h2 id="voiceTitle">At your service, boss.</h2>
-  <p id="voiceStatus">Choose a language and activate listening.</p>
+  <p id="voiceStatus">Tap activate, then say “Hey JARVIS”.</p>
   <select class="lang-select" id="voiceLanguage">
-   <option value="en-IN">English</option>
+   <option value="en-IN">English / Hinglish</option>
    <option value="hi-IN">Hindi</option>
   </select>
   <div class="voice-controls">
-   <button onclick="toggleVoiceListening()" id="voiceStart">Start listening</button>
-   <button onclick="stopVoice()">Stop</button>
+   <button onclick="toggleVoiceListening()" id="voiceStart">Activate listening</button>
+   <button class="stop-button" onclick="stopSpeaking()">Stop speaking</button>
+   <button onclick="stopVoice()">Pause mic</button>
   </div>
-  <p style="margin-top:22px;font-size:11px">Keep JARVIS open and your iPhone unlocked.</p>
+  <p class="voice-hint">Say “Hey JARVIS” to wake him. Then give your command. Say “Stop” to interrupt his voice. Keep this screen open and your iPhone unlocked.</p>
  </section>
 </main>
 </div>
@@ -264,34 +295,36 @@ let currentChat=null;
 let busy=false;
 let voiceActive=false;
 let recognition=null;
+let currentUtterance=null;
+let awaitingCommand=false;
+let restartTimer=null;
+let requestId=0;
 
 function loadChats(){
  try{chats=JSON.parse(localStorage.getItem('jarvis_chats')||'[]')}
  catch(e){chats=[]}
  renderHistory();
 }
-
 function saveChats(){
  try{localStorage.setItem('jarvis_chats',JSON.stringify(chats))}
  catch(e){}
 }
-
 function newChat(){
  currentChat=null;
- busy=false;
  messagesEl.innerHTML='';
  showWelcome();
  renderHistory();
  closeSidebarIfMobile();
 }
-
 function showWelcome(){
  const welcome=document.createElement('div');
- welcome.className='welcome';
- welcome.id='welcome';
+ welcome.className='welcome';welcome.id='welcome';
  welcome.innerHTML=`
- <h1>Good day, <span>Boss.</span></h1>
- <p>I'm JARVIS, your personal AI assistant. Ask me anything, explore an idea, or tell me what you need help with.</p>
+ <div class="eyebrow">PERSONAL AI SYSTEM</div>
+ <div class="orb-wrap"><div class="orb" id="mainOrb"><div class="orb-core">JARVIS</div><div class="orb-status">ONLINE</div></div></div>
+ <h1>At your service, <span>Boss.</span></h1>
+ <p>Your personal AI assistant is ready. Ask a question, start a voice session, or tell me what you want to accomplish.</p>
+ <button class="primary-voice" style="margin-top:20px" onclick="openVoice()">◉ &nbsp; Activate voice mode</button>
  <div class="suggestions">
  <button class="suggestion" onclick="quickAsk('Help me plan my day.')"><strong>◷ Plan my day</strong><small>Organise your schedule and tasks</small></button>
  <button class="suggestion" onclick="quickAsk('Teach me something fascinating today.')"><strong>✧ Learn something</strong><small>Explore a new idea or topic</small></button>
@@ -300,7 +333,6 @@ function showWelcome(){
  </div>`;
  messagesEl.appendChild(welcome);
 }
-
 function renderHistory(){
  historyEl.innerHTML='';
  chats.slice().reverse().forEach(chat=>{
@@ -311,17 +343,13 @@ function renderHistory(){
   historyEl.appendChild(b);
  });
 }
-
 function openChat(id){
  const chat=chats.find(c=>c.id===id);
  if(!chat)return;
- currentChat=id;
- messagesEl.innerHTML='';
+ currentChat=id;messagesEl.innerHTML='';
  chat.messages.forEach(m=>addMessage(m.text,m.role,false));
- renderHistory();
- closeSidebarIfMobile();
+ renderHistory();closeSidebarIfMobile();
 }
-
 function ensureChat(text){
  if(!currentChat){
   currentChat=String(Date.now());
@@ -331,118 +359,230 @@ function ensureChat(text){
  if(chat&&chat.messages.length===0)chat.title=text.slice(0,38);
  return chat;
 }
-
 function addMessage(text,role,save=true){
  const welcome=document.getElementById('welcome');
  if(welcome)welcome.remove();
-
  const wrap=document.createElement('div');
  wrap.className='message '+(role==='user'?'user':'jarvis');
-
  if(role!=='user'){
   const av=document.createElement('div');
-  av.className='mini-avatar';
-  av.textContent='J';
-  wrap.appendChild(av);
+  av.className='mini-avatar';av.textContent='J';wrap.appendChild(av);
  }
-
  const bubble=document.createElement('div');
- bubble.className='bubble';
- bubble.textContent=text;
- wrap.appendChild(bubble);
+ bubble.className='bubble';bubble.textContent=text;wrap.appendChild(bubble);
  messagesEl.appendChild(wrap);
-
- document.getElementById('chatArea').scrollTop=
-  document.getElementById('chatArea').scrollHeight;
-
+ const area=document.getElementById('chatArea');
+ area.scrollTop=area.scrollHeight;
  if(save){
   const chat=ensureChat(text);
-  chat.messages.push({text,role});
-  saveChats();
-  renderHistory();
+  chat.messages.push({text,role});saveChats();renderHistory();
  }
 }
-
 function showTyping(){
  const el=document.createElement('div');
- el.className='typing';
- el.id='typing';
+ el.className='typing';el.id='typing';
  el.textContent='JARVIS is thinking...';
  messagesEl.appendChild(el);
- document.getElementById('chatArea').scrollTop=
-  document.getElementById('chatArea').scrollHeight;
+ document.getElementById('chatArea').scrollTop=document.getElementById('chatArea').scrollHeight;
 }
-
 function removeTyping(){
- const el=document.getElementById('typing');
- if(el)el.remove();
+ const el=document.getElementById('typing');if(el)el.remove();
 }
-
 async function sendMessage(){
  const text=input.value.trim();
  if(!text||busy)return;
- input.value='';
- resizeInput(input);
+ input.value='';resizeInput(input);
  await askJarvis(text);
 }
-
 async function askJarvis(text){
  if(busy)return;
  busy=true;
- addMessage(text,'user');
- showTyping();
-
+ const thisRequest=++requestId;
+ addMessage(text,'user');showTyping();
  try{
   const response=await fetch('/api/chat',{
-   method:'POST',
-   headers:{'Content-Type':'application/json'},
+   method:'POST',headers:{'Content-Type':'application/json'},
    body:JSON.stringify({message:text})
   });
-
   if(!response.ok)throw new Error('Server returned '+response.status);
-
   const data=await response.json();
   if(!data.reply)throw new Error('No reply received');
-
-  removeTyping();
-  addMessage(data.reply,'jarvis');
+  if(thisRequest!==requestId)return;
+  removeTyping();addMessage(data.reply,'jarvis');
   speakReply(data.reply);
  }catch(error){
-  removeTyping();
-  addMessage('Boss, I could not reach my AI service just now. Please try again in a moment.','jarvis');
+  if(thisRequest===requestId){
+   removeTyping();
+   addMessage('Boss, I could not reach my AI service just now. Please try again in a moment.','jarvis');
+  }
   console.error('JARVIS error:',error);
+ }finally{
+  if(thisRequest===requestId)busy=false;
  }
- busy=false;
 }
-
-function quickAsk(text){
- askJarvis(text);
-}
-
+function quickAsk(text){askJarvis(text)}
 function resizeInput(el){
- el.style.height='auto';
- el.style.height=Math.min(el.scrollHeight,120)+'px';
+ el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';
 }
-
 function inputKey(e){
- if(e.key==='Enter'&&!e.shiftKey){
-  e.preventDefault();
-  sendMessage();
- }
+ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}
 }
 
+/* VOICE OUTPUT */
+function setOrbState(state){
+ ['mainOrb','voiceOrb'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.classList.toggle('listening',state==='listening');
+  if(el)el.classList.toggle('speaking',state==='speaking');
+ });
+}
 function speakReply(text){
  if(!('speechSynthesis' in window))return;
  speechSynthesis.cancel();
+ currentUtterance=null;
  const hindi=/[\u0900-\u097F]/.test(text);
  const u=new SpeechSynthesisUtterance(text);
  u.lang=hindi?'hi-IN':'en-IN';
- u.rate=.94;
- u.pitch=.85;
+ u.rate=1.12;
+ u.pitch=.96;
+ u.volume=1;
  const voices=speechSynthesis.getVoices();
- const v=voices.find(x=>x.lang.toLowerCase().startsWith(hindi?'hi':'en-in'));
+ const v=voices.find(x=>hindi?
+  x.lang.toLowerCase().startsWith('hi'):
+  x.lang.toLowerCase()==='en-in') ||
+  voices.find(x=>x.lang.toLowerCase().startsWith(hindi?'hi':'en'));
  if(v)u.voice=v;
+ currentUtterance=u;
+ u.onstart=()=>setOrbState('speaking');
+ u.onend=()=>{
+  if(currentUtterance===u){currentUtterance=null;setOrbState(voiceActive?'listening':'idle')}
+ };
+ u.onerror=()=>{
+  if(currentUtterance===u){currentUtterance=null;setOrbState(voiceActive?'listening':'idle')}
+ };
  speechSynthesis.speak(u);
+}
+function stopSpeaking(){
+ if('speechSynthesis' in window)speechSynthesis.cancel();
+ currentUtterance=null;
+ setOrbState(voiceActive?'listening':'idle');
+ statusEl.textContent=voiceActive?'Stopped. Listening for you, boss.':'Speech stopped.';
+}
+
+/* VOICE INPUT + WAKE WORD */
+function openVoice(){
+ document.getElementById('voiceScreen').classList.add('show');
+}
+function closeVoice(){
+ stopVoice();
+ stopSpeaking();
+ document.getElementById('voiceScreen').classList.remove('show');
+}
+function toggleVoiceListening(){
+ if(voiceActive){stopVoice();return}
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){
+  statusEl.textContent='Speech recognition is unavailable. Try Safari.';
+  return;
+ }
+ voiceActive=true;
+ awaitingCommand=false;
+ document.getElementById('voiceStart').textContent='Listening is active';
+ statusEl.textContent='Listening for “Hey JARVIS”, boss...';
+ setOrbState('listening');
+ startRecognition();
+}
+function startRecognition(){
+ if(!voiceActive)return;
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR)return;
+ try{
+  const r=new SR();
+  recognition=r;
+  r.lang=document.getElementById('voiceLanguage').value;
+  r.continuous=true;
+  r.interimResults=true;
+  r.maxAlternatives=1;
+
+  r.onresult=e=>{
+   for(let i=e.resultIndex;i<e.results.length;i++){
+    if(!e.results[i].isFinal)continue;
+    const spoken=e.results[i][0].transcript.trim();
+    handleVoiceText(spoken);
+   }
+  };
+  r.onerror=e=>{
+   if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+    statusEl.textContent='Microphone permission denied. Allow microphone access in Safari settings.';
+    voiceActive=false;
+    document.getElementById('voiceStart').textContent='Activate listening';
+   }
+  };
+  r.onend=()=>{
+   if(recognition===r)recognition=null;
+   if(voiceActive){
+    clearTimeout(restartTimer);
+    restartTimer=setTimeout(startRecognition,650);
+   }
+  };
+  r.start();
+ }catch(e){
+  statusEl.textContent='Could not start microphone. Tap activate again.';
+ }
+}
+function handleVoiceText(raw){
+ const text=raw.trim();
+ if(!text)return;
+ const normalized=text.toLowerCase().replace(/[.,!?]/g,'').trim();
+
+ const stopWords=[
+  'stop','jarvis stop','stop jarvis','shut up','be quiet',
+  'chup','bas','ruk jao','band karo','रुको','बस','चुप','बंद करो'
+ ];
+ if(stopWords.includes(normalized)||normalized.endsWith(' stop')||
+    normalized.startsWith('stop ')){
+  stopSpeaking();
+  return;
+ }
+
+ const wakeMatch=normalized.match(/^(?:hey\s+)?jarvis\b[\s,:-]*(.*)$/i);
+ const hindiWake=normalized.match(/^(?:हे\s+)?जार्विस[\s,:-]*(.*)$/i);
+
+ if(!awaitingCommand){
+  if(wakeMatch||hindiWake){
+   const command=(wakeMatch?wakeMatch[1]:hindiWake[1]).trim();
+   statusEl.textContent='Yes, boss?';
+   speakReply('Yes, boss?');
+   awaitingCommand=true;
+   if(command.length>2){
+    awaitingCommand=false;
+    setTimeout(()=>askJarvis(command),350);
+   }else{
+    statusEl.textContent='Yes, boss? I am listening for your command.';
+   }
+  }
+  return;
+ }
+
+ if(normalized==='hey jarvis'||normalized==='jarvis'||normalized==='hey jarvis are you there'){
+  speakReply('I am here, boss.');
+  return;
+ }
+ awaitingCommand=false;
+ statusEl.textContent='Processing your command...';
+ askJarvis(text);
+}
+function stopVoice(){
+ voiceActive=false;
+ awaitingCommand=false;
+ clearTimeout(restartTimer);
+ if(recognition){
+  const r=recognition;recognition=null;
+  try{r.abort()}catch(e){}
+ }
+ document.getElementById('voiceStart').textContent='Activate listening';
+ statusEl.textContent='Microphone paused.';
+ setOrbState('idle');
 }
 
 function toggleSidebar(){
@@ -455,68 +595,6 @@ function closeSidebarIfMobile(){
   document.getElementById('shade').classList.remove('show');
  }
 }
-
-function openVoice(){
- document.getElementById('voiceScreen').classList.add('show');
-}
-function closeVoice(){
- stopVoice();
- document.getElementById('voiceScreen').classList.remove('show');
-}
-
-function toggleVoiceListening(){
- if(voiceActive){stopVoice();return}
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR){
-  statusEl.textContent='Speech recognition is unavailable in this browser.';
-  return;
- }
- voiceActive=true;
- document.getElementById('voiceStart').textContent='Listening... tap to pause';
- listenOnce();
-}
-
-function listenOnce(){
- if(!voiceActive||busy)return;
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- const r=new SR();
- recognition=r;
- r.lang=document.getElementById('voiceLanguage').value;
- r.continuous=false;
- r.interimResults=false;
-
- statusEl.textContent='Listening, boss...';
-
- r.onresult=async e=>{
-  const text=e.results[0][0].transcript.trim();
-  statusEl.textContent='You said: '+text;
-  await askJarvis(text);
-  if(voiceActive){
-   statusEl.textContent='Ready for your next command.';
-   setTimeout(listenOnce,900);
-  }
- };
-
- r.onerror=e=>{
-  statusEl.textContent='Voice recognition stopped: '+e.error;
- };
- r.onend=()=>{
-  if(recognition===r)recognition=null;
- };
- try{r.start()}
- catch(e){statusEl.textContent='Could not start microphone. Try again.'}
-}
-
-function stopVoice(){
- voiceActive=false;
- if(recognition){
-  try{recognition.abort()}catch(e){}
-  recognition=null;
- }
- document.getElementById('voiceStart').textContent='Start listening';
- statusEl.textContent='Voice mode paused.';
-}
-
 loadChats();
 </script>
 </body>
