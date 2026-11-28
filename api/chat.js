@@ -1,32 +1,88 @@
 
+
 const MODELS = [
   "gemini-3.8-flash",
   "gemini-3.5-flash-lite"
 ];
 
-const SYSTEM_PROMPT = `
+const TIMEZONE = "Asia/Kolkata";
+
+function getLiveContext() {
+  const now = new Date();
+
+  const date = new Intl.DateTimeFormat("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: TIMEZONE
+  }).format(now);
+
+  const time = new Intl.DateTimeFormat("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+    timeZone: TIMEZONE
+  }).format(now);
+
+  return `
+LIVE SYSTEM CONTEXT:
+Current date: ${date}
+Current time: ${time}
+Timezone: ${TIMEZONE}
+
+Always use this live date and time when answering questions about today.
+Never claim the current year is 2024.
+Do not invent current events or claim to have searched the internet.
+`;
+}
+
+function getSystemPrompt() {
+  return `
 You are JARVIS, an intelligent personal AI assistant.
 
 PERSONALITY:
 - Speak naturally, confidently and respectfully.
-- Address the user as boss occasionally.
+- Address the user as boss occasionally, not in every reply.
 - Be intelligent, practical, helpful and honest.
 - Understand English, Hindi and Hinglish.
-- Always reply in the language the user uses.
+- Reply in the language the user uses.
 - Give useful advice and clear explanations.
 - Remember the conversation context provided.
 - Never pretend to perform actions you cannot perform.
 - Avoid repetitive robotic responses.
+- Avoid unnecessary introductions and repeated conclusions.
+- Answer simple questions directly.
+- Think carefully before answering complex questions.
+- Break complicated tasks into clear steps.
+- If you are uncertain, say so honestly.
 
-You are JARVIS. Your purpose is to assist your boss.
+RESPONSE STYLE:
+- Sound like a capable personal AI assistant.
+- Be concise when the question is simple.
+- Give detailed answers when the task needs them.
+- Do not unnecessarily repeat the user's question.
+- Maintain context throughout the conversation.
+
+IDENTITY:
+You are JARVIS.
+Your purpose is to assist your boss.
+
+${getLiveContext()}
 `;
+}
 
-const sleep = ms =>
-  new Promise(resolve => setTimeout(resolve, ms));
+const TIMEOUT_MS = 15000;
+const MAX_MESSAGES = 16;
+const MAX_MESSAGE_LENGTH = 6000;
 
 async function callGemini(model, contents, apiKey) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 18000);
+
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, TIMEOUT_MS);
 
   try {
     const response = await fetch(
@@ -39,11 +95,15 @@ async function callGemini(model, contents, apiKey) {
         },
         body: JSON.stringify({
           systemInstruction: {
-            parts: [{ text: SYSTEM_PROMPT }]
+            parts: [
+              {
+                text: getSystemPrompt()
+              }
+            ]
           },
           contents,
           generationConfig: {
-            maxOutputTokens: 2048
+            maxOutputTokens: 1536
           }
         }),
         signal: controller.signal
@@ -56,6 +116,7 @@ async function callGemini(model, contents, apiKey) {
       const error = new Error(
         data?.error?.message || "Gemini request failed."
       );
+
       error.status = response.status;
       throw error;
     }
@@ -78,9 +139,14 @@ async function callGemini(model, contents, apiKey) {
 
 function isTemporary(error) {
   return [
-    408, 429, 500, 502, 503, 504
+    408,
+    429,
+    500,
+    502,
+    503,
+    504
   ].includes(error.status) ||
-    error.name === "AbortError";
+  error.name === "AbortError";
 }
 
 export default async function handler(req, res) {
@@ -113,12 +179,14 @@ export default async function handler(req, res) {
           typeof item.text === "string" &&
           item.text.trim()
         )
-        .slice(-16)
+        .slice(-MAX_MESSAGES)
         .map(item => ({
           role: item.role,
-          parts: [{
-            text: item.text.slice(0, 6000)
-          }]
+          parts: [
+            {
+              text: item.text.slice(0, MAX_MESSAGE_LENGTH)
+            }
+          ]
         }));
     }
 
@@ -129,9 +197,11 @@ export default async function handler(req, res) {
     ) {
       contents.push({
         role: "user",
-        parts: [{
-          text: message.trim().slice(0, 6000)
-        }]
+        parts: [
+          {
+            text: message.trim().slice(0, MAX_MESSAGE_LENGTH)
+          }
+        ]
       });
     }
 
@@ -150,57 +220,52 @@ export default async function handler(req, res) {
     let lastError;
 
     for (const model of MODELS) {
-      // Two attempts for the primary model, one for the backup.
-      const attempts = model === MODELS[0] ? 2 : 1;
+      try {
+        const reply = await callGemini(
+          model,
+          contents,
+          apiKey
+        );
 
-      for (let attempt = 0; attempt < attempts; attempt++) {
-        try {
-          const reply = await callGemini(
-            model,
-            contents,
-            apiKey
-          );
+        return res.status(200).json({
+          reply,
+          model
+        });
 
-          return res.status(200).json({
-            reply,
-            model
-          });
+      } catch (error) {
+        lastError = error;
 
-        } catch (error) {
-          lastError = error;
+        console.error(
+          `JARVIS ${model} failed:`,
+          error.message
+        );
 
-          console.error(
-            `JARVIS ${model} attempt ${attempt + 1}:`,
-            error.message
-          );
-
-          if (!isTemporary(error)) {
-            break;
-          }
-
-          if (attempt < attempts - 1) {
-            await sleep(900);
-          }
+        // Try the backup model after a failure.
+        // Do not waste time retrying the same model.
+        if (!isTemporary(error) && error.status !== 404) {
+          break;
         }
       }
     }
 
-    console.error("All JARVIS models failed:", lastError);
+    console.error(
+      "All JARVIS models failed:",
+      lastError?.message
+    );
 
-    const status = lastError?.status || 503;
+    const timedOut = lastError?.name === "AbortError";
 
-    return res.status(
-      status >= 400 && status < 500 && status !== 408 && status !== 429
-        ? status
-        : 503
-    ).json({
-      error: lastError?.name === "AbortError"
-        ? "AI response timed out. Please try again."
-        : "Both AI models are temporarily unavailable. Please try again shortly."
+    return res.status(503).json({
+      error: timedOut
+        ? "JARVIS response timed out. Please try again."
+        : "JARVIS is temporarily unavailable. Please try again shortly."
     });
 
   } catch (error) {
-    console.error("JARVIS server error:", error);
+    console.error(
+      "JARVIS server error:",
+      error.message
+    );
 
     return res.status(500).json({
       error: "JARVIS encountered a server error."
